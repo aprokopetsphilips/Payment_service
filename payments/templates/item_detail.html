@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body>
+<h1>{{item.name}}</h1>
+    <p>{{item.descriptions}}</p>
+    <p>{{item.price}}</p>
+<form method="get" action="{% url 'create-checkout-session' item.id %}">
+    <button type="submit">Buy</button>
+</form>
+</body>
+</html>

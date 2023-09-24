@@ -1,8 +1,11 @@
 import stripe
 from django.conf import settings
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import TemplateView
+
+from payments.models import Item
 
 
 class SuccessView(TemplateView):
@@ -21,8 +24,9 @@ def stripe_config(request):
         return JsonResponse(stripe_config, safe=False)
 
 @csrf_exempt
-def create_checkout_session(request):
+def create_checkout_session(request, pk):
     if request.method == 'GET':
+        product = get_object_or_404(Item, id=pk)
         domain_url = 'http://localhost:8000/'
         stripe.api_key = settings.STRIPE_SECRET_KEY
         try:
@@ -34,10 +38,10 @@ def create_checkout_session(request):
                 line_items=[{
                     'price_data': {
                         'currency': 'usd',
-                        'unit_amount': 2000,
+                        'unit_amount': product.price,
                         'product_data': {
-                            'name': 'T-shirt',
-                            'description': 'Comfortable cotton t-shirt',
+                            'name': product.name,
+                            'description': product.description,
                             'images': ['https://example.com/t-shirt.png'],
                         },
                     },
@@ -49,3 +53,9 @@ def create_checkout_session(request):
         except Exception as e:
             print(e)
             return JsonResponse({'error': str(e)})
+
+def show_selected_item(request, pk):
+    item = Item.objects.get(id=pk)
+    context={'item': item}
+    return render(request, "item_detail.html", context)
+
